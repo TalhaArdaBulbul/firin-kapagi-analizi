@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Fırın Camı Isı Transferi</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+</head>
+
+<body>
+    <main class="app-shell">
+
+        <!-- KURUMSAL BAŞLIK -->
+       
+
+        <!-- SAYFA BAŞLIĞI -->
+        <header class="page-header">
+    <div class="page-title-block">
+        <p class="eyebrow">ISI TRANSFERİ ANALİZİ</p>
+
+        <h1>Fırın Camı Isı Transferi Modeli</h1>
+
+        <p class="page-description">
+            Tek cam veya çok katmanlı cam sistemleri için
+            kararlı durum ısı geçişi analizi.
+        </p>
+    </div>
+
+    <div class="header-actions">
+
+        <section class="institution-header">
+            <div class="institution-logo-wrapper">
+                <img
+                    class="institution-logo"
+                    src="https://upload.wikimedia.org/wikipedia/tr/thumb/9/90/%C4%B0T%C3%9C_logo.png/250px-%C4%B0T%C3%9C_logo.png"
+                    alt="İstanbul Teknik Üniversitesi logosu"
+                >
+            </div>
+
+            <div class="institution-text">
+                <span>İstanbul Teknik Üniversitesi</span>
+
+                <strong>Makina Fakültesi</strong>
+
+                <p>
+                    Yüksek Sıcaklıkta Isı Geçişi Laboratuvarı
+                </p>
+            </div>
+        </section>
+
+        <button
+            id="model-toggle-button"
+            class="model-switch"
+            type="button"
+            aria-label="Hesap modelini değiştir"
+        >
+            <span id="model-mode-label">
+                Basitleştirilmiş Tek Cam Modeli
+            </span>
+
+            <svg
+                id="model-rotation-icon"
+                class="rotation-icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+            >
+                <path
+                    d="M20 11a8.1 8.1 0 0 0-15.5-2M4 4v5h5"
+                />
+
+                <path
+                    d="M4 13a8.1 8.1 0 0 0 15.5 2M20 20v-5h-5"
+                />
+            </svg>
+        </button>
+
+    </div>
+</header>
+
+        <section class="workspace">
+
+            <!-- SOL PANEL -->
+            <aside class="panel input-panel">
+                <div class="panel-heading">
+                    <span class="panel-number">01</span>
+
+                    <div>
+                        <h2>Model Girdileri</h2>
+                        <p id="input-panel-description">
+                            Tek cam hesaplama parametreleri
+                        </p>
+                    </div>
+                </div>
+
+                <div class="input-section">
+                    <h3>Genel Koşullar</h3>
+
+                    <div class="form-group">
+                        <label for="oven-temperature">
+                            Fırın iç sıcaklığı
+                        </label>
+
+                        <div class="input-wrapper">
+                            <input
+                                id="oven-temperature"
+                                type="number"
+                                value="250"
+                                step="1"
+                            >
+
+                            <span>°C</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="room-temperature">
+                            Ortam sıcaklığı
+                        </label>
+
+                        <div class="input-wrapper">
+                            <input
+                                id="room-temperature"
+                                type="number"
+                                value="25"
+                                step="1"
+                            >
+
+                            <span>°C</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="glass-area">
+                            Toplam cam alanı
+                        </label>
+
+                        <div class="input-wrapper">
+                            <input
+                                id="glass-area"
+                                type="number"
+                                value="0.40"
+                                min="0.01"
+                                step="0.01"
+                            >
+
+                            <span>m²</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TEK CAM GİRDİLERİ -->
+                <section id="single-glass-inputs">
+                    <div class="input-section">
+                        <h3>Tek Cam Özellikleri</h3>
+
+                        <div class="form-group">
+                            <label for="emissivity">
+                                Cam emissivitesi, ε
+                            </label>
+
+                            <input
+                                id="emissivity"
+                                type="number"
+                                value="0.84"
+                                min="0"
+                                max="1"
+                                step="0.01"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="convection-coefficient">
+                                Taşınım katsayısı
+                            </label>
+
+                            <div class="input-wrapper">
+                                <input
+                                    id="convection-coefficient"
+                                    type="number"
+                                    value="10"
+                                    min="0"
+                                    step="1"
+                                >
+
+                                <span>W/m²K</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ÇOKLU CAM GİRDİLERİ -->
+                <section
+                    id="multiple-glass-inputs"
+                    hidden
+                >
+                    <div class="input-section">
+                        <h3>Sınır Koşulları</h3>
+
+                        <div class="form-group">
+                            <label for="hot-side-convection-coefficient">
+                                Fırın tarafı taşınım katsayısı
+                            </label>
+
+                            <div class="input-wrapper">
+                                <input
+                                    id="hot-side-convection-coefficient"
+                                    type="number"
+                                    value="15"
+                                    min="0"
+                                    step="1"
+                                >
+
+                                <span>W/m²K</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cold-side-convection-coefficient">
+                                Ortam tarafı taşınım katsayısı
+                            </label>
+
+                            <div class="input-wrapper">
+                                <input
+                                    id="cold-side-convection-coefficient"
+                                    type="number"
+                                    value="8"
+                                    min="0"
+                                    step="1"
+                                >
+
+                                <span>W/m²K</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="input-section">
+                        <h3>Katman Yapısı</h3>
+
+                        <div class="form-group">
+                            <label for="glass-count">
+                                Cam katmanı sayısı
+                            </label>
+
+                            <select id="glass-count">
+                                <option value="2" selected>2 cam</option>
+                                <option value="3">3 cam</option>
+                                <option value="4">4 cam</option>
+                                <option value="5">5 cam</option>
+                                <option value="6">6 cam</option>
+                            </select>
+                        </div>
+
+                        <div id="dynamic-layer-inputs"></div>
+                    </div>
+                </section>
+
+                <button
+                    id="calculate-button"
+                    class="primary-button"
+                    type="button"
+                >
+                    Hesapla
+                </button>
+            </aside>
+
+            <!-- ORTA PANEL -->
+            <section class="panel model-panel">
+                <div class="panel-heading">
+                    <span class="panel-number">02</span>
+
+                    <div>
+                        <h2>Fiziksel Model</h2>
+
+                        <p>
+                            Isı transfer yollarının şematik gösterimi
+                        </p>
+                    </div>
+                </div>
+
+                <div class="model-stage">
+                    <svg
+                        id="heat-model"
+                        viewBox="0 0 800 470"
+                        role="img"
+                        aria-label="Fırın camı ısı transferi modeli"
+                    >
+                        <defs>
+                            <linearGradient
+                                id="oven-gradient"
+                                x1="0"
+                                y1="0"
+                                x2="1"
+                                y2="1"
+                            >
+                                <stop
+                                    offset="0%"
+                                    stop-color="#7c2d12"
+                                />
+
+                                <stop
+                                    offset="55%"
+                                    stop-color="#c2410c"
+                                />
+
+                                <stop
+                                    offset="100%"
+                                    stop-color="#fb923c"
+                                />
+                            </linearGradient>
+
+                            <filter id="heat-glow">
+                                <feGaussianBlur
+                                    stdDeviation="5"
+                                    result="coloredBlur"
+                                />
+
+                                <feMerge>
+                                    <feMergeNode in="coloredBlur"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+
+                            <marker
+                                id="radiation-arrow"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="8"
+                                refY="3"
+                                orient="auto"
+                            >
+                                <path
+                                    d="M0,0 L0,6 L9,3 z"
+                                    fill="#fb923c"
+                                />
+                            </marker>
+
+                            <marker
+                                id="convection-arrow"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="8"
+                                refY="3"
+                                orient="auto"
+                            >
+                                <path
+                                    d="M0,0 L0,6 L9,3 z"
+                                    fill="#38bdf8"
+                                />
+                            </marker>
+
+                            <marker
+                                id="loss-arrow"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="8"
+                                refY="3"
+                                orient="auto"
+                            >
+                                <path
+                                    d="M0,0 L0,6 L9,3 z"
+                                    fill="#94a3b8"
+                                />
+                            </marker>
+                        </defs>
+
+                        <!-- FIRIN -->
+                        <rect
+                            x="25"
+                            y="45"
+                            width="245"
+                            height="370"
+                            rx="26"
+                            class="oven-body"
+                        />
+
+                        <text
+                            x="147"
+                            y="80"
+                            text-anchor="middle"
+                            class="svg-title"
+                        >
+                            FIRIN HACMİ
+                        </text>
+
+                        <text
+                            id="model-oven-temperature"
+                            x="147"
+                            y="107"
+                            text-anchor="middle"
+                            class="svg-temperature hot-temperature"
+                        >
+                            250 °C
+                        </text>
+
+                        <!-- HEATER -->
+                        <rect
+                            x="60"
+                            y="150"
+                            width="175"
+                            height="95"
+                            rx="18"
+                            class="heater-body"
+                        />
+
+                        <text
+                            x="147"
+                            y="177"
+                            text-anchor="middle"
+                            class="svg-label"
+                        >
+                            HEATER
+                        </text>
+
+                        <path
+                            class="heater-coil"
+                            d="
+                                M80 210
+                                L95 187
+                                L110 210
+                                L125 187
+                                L140 210
+                                L155 187
+                                L170 210
+                                L185 187
+                                L200 210
+                                L215 187
+                            "
+                        />
+
+                        <!-- IŞINIM -->
+                         <!-- IŞINIM -->
+                            <path
+    class="radiation-ray"
+    d="M225 170 L510 170"
+    marker-end="url(#radiation-arrow)"
+                            />
+
+                            <path
+    class="radiation-ray radiation-delay-one"
+    d="M225 205 L510 205"
+    marker-end="url(#radiation-arrow)"
+                            />
+
+                            <path
+    class="radiation-ray radiation-delay-two"
+    d="M225 240 L510 240"
+    marker-end="url(#radiation-arrow)"
+                            />
+
+                            <text
+    x="375"
+    y="105"
+    text-anchor="middle"
+    class="radiation-text"
+>
+    Işınım
+                            </text>
+
+                            <text
+    id="model-radiation-value"
+    x="375"
+    y="130"
+    text-anchor="middle"
+    class="svg-value radiation-value"
+>
+    q″rad = —
+                            </text>
+                        
+
+                        
+                        <!-- TAŞINIM -->
+                        <path
+                            class="convection-flow"
+                            d="
+                                M95 320
+                                C160 375 245 375 315 340
+                                C390 300 445 315 510 330
+                            "
+                            marker-end="url(#convection-arrow)"
+                        />
+
+                        <path
+                            class="convection-flow convection-delay"
+                            d="
+                                M85 285
+                                C150 330 225 330 295 300
+                                C380 265 445 275 510 295
+                            "
+                            marker-end="url(#convection-arrow)"
+                        />
+
+                        <text
+                            x="375"
+                            y="372"
+                            text-anchor="middle"
+                            class="convection-text"
+                        >
+                            Sıcak gaz / taşınım
+                        </text>
+
+                        <text
+                            id="model-convection-value"
+                            x="375"
+                            y="396"
+                            text-anchor="middle"
+                            class="svg-value"
+                        >
+                            q″conv = —
+                        </text>
+
+                        <!-- DİNAMİK CAMLAR -->
+                        <text
+                            id="model-glass-title"
+                            x="570"
+                            y="80"
+                            text-anchor="middle"
+                            class="svg-title"
+                        >
+                            CAM
+                        </text>
+
+                        <g id="dynamic-glass-group"></g>
+
+                        <!-- DIŞ ORTAM -->
+                        <rect
+                            x="675"
+                            y="85"
+                            width="100"
+                            height="300"
+                            rx="22"
+                            class="room-zone"
+                        />
+
+                        <text
+                            x="725"
+                            y="120"
+                            text-anchor="middle"
+                            class="svg-title"
+                        >
+                            ORTAM
+                        </text>
+
+                        <text
+                            id="model-room-temperature"
+                            x="725"
+                            y="147"
+                            text-anchor="middle"
+                            class="svg-temperature"
+                        >
+                            25 °C
+                        </text>
+
+                        <path
+                            class="heat-loss-arrow"
+                            d="M625 230 L700 230"
+                            marker-end="url(#loss-arrow)"
+                        />
+
+                        <text
+                            x="662"
+                            y="210"
+                            text-anchor="middle"
+                            class="svg-label"
+                        >
+                            Isı kaybı
+                        </text>
+
+                        <text
+                            id="model-total-value"
+                            x="662"
+                            y="261"
+                            text-anchor="middle"
+                            class="svg-value"
+                        >
+                            Q̇ = —
+                        </text>
+                    </svg>
+                </div>
+
+                <div class="model-legend">
+                    <div>
+                        <span class="legend-line radiation-legend"></span>
+                        Işınım
+                    </div>
+
+                    <div>
+                        <span class="legend-line convection-legend"></span>
+                        Taşınım
+                    </div>
+
+                    <div>
+                        <span class="legend-glass"></span>
+                        Cam katmanı
+                    </div>
+
+                    <div>
+                        <span class="legend-gap"></span>
+                        Gaz boşluğu
+                    </div>
+                </div>
+
+                <p
+                    id="model-note"
+                    class="model-note"
+                >
+                    Tek cam modeli, fırın ve ortam sıcaklıkları arasındaki
+                    ışınım ve taşınım bileşenlerini karşılaştırır.
+                </p>
+            </section>
+
+            <!-- SAĞ PANEL -->
+            <aside class="panel results-panel">
+                <div class="panel-heading">
+                    <span class="panel-number">03</span>
+
+                    <div>
+                        <h2>Hesap Sonuçları</h2>
+                        <p>Enerji akıları ve katman sıcaklıkları</p>
+                    </div>
+                </div>
+
+                <div class="table-block">
+                    <h3>Genel Sonuçlar</h3>
+
+                    <table class="result-table">
+                        <thead>
+                            <tr>
+                                <th>Büyüklük</th>
+                                <th>Değer</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr>
+                                <td>Fırın tarafı ışınım</td>
+                                <td id="radiation-result">—</td>
+                            </tr>
+
+                            <tr>
+                                <td>Fırın tarafı taşınım</td>
+                                <td id="convection-result">—</td>
+                            </tr>
+
+                            <tr>
+                                <td>Net ısı akısı</td>
+                                <td id="total-flux-result">—</td>
+                            </tr>
+
+                            <tr class="highlighted-row">
+                                <td>Toplam ısı geçişi</td>
+                                <td id="total-rate-result">—</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-block">
+                    <h3>Fırın Tarafı Dağılımı</h3>
+
+                    <table class="result-table compact-table">
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <span
+                                        class="status-dot radiation-dot"
+                                    ></span>
+
+                                    Işınım payı
+                                </td>
+
+                                <td id="radiation-share">—</td>
+                            </tr>
+
+                            <tr>
+                                <td>
+                                    <span
+                                        class="status-dot convection-dot"
+                                    ></span>
+
+                                    Taşınım payı
+                                </td>
+
+                                <td id="convection-share">—</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- ÇOKLU CAM SONUÇLARI -->
+                <section
+                    id="multiple-results-section"
+                    hidden
+                >
+                    <div class="table-block">
+                        <h3>Cam Yüzey Sıcaklıkları</h3>
+
+                        <div class="table-scroll">
+                            <table class="result-table detail-table">
+                                <thead>
+                                    <tr>
+                                        <th>Cam</th>
+                                        <th>İç yüzey</th>
+                                        <th>Dış yüzey</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody id="layer-results-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="table-block">
+                        <h3>Cam Boşlukları</h3>
+
+                        <div class="table-scroll">
+                            <table class="result-table detail-table">
+                                <thead>
+                                    <tr>
+                                        <th>Boşluk</th>
+                                        <th>İletim</th>
+                                        <th>Işınım</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody id="gap-results-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="table-block">
+                        <h3>Sayısal Çözüm</h3>
+
+                        <table class="result-table compact-table">
+                            <tbody>
+                                <tr>
+                                    <td>Enerji dengesi hatası</td>
+                                    <td id="energy-balance-error">—</td>
+                                </tr>
+
+                                <tr>
+                                    <td>Fonksiyon değerlendirmesi</td>
+                                    <td id="solver-iterations">—</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <div class="model-status">
+                    <span>Model durumu</span>
+
+                    <strong id="model-status-text">
+                        Hesaplama bekleniyor
+                    </strong>
+                </div>
+            </aside>
+
+        </section>
+    </main>
+
+    <script
+        src="{{ url_for('static', filename='script.js') }}"
+    ></script>
+</body>
+</html>
