@@ -5,6 +5,7 @@ from multipleGlassLayer import calculate_multiple_glass_layer
 
 
 app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = 64 * 1024
 
 
 @app.route("/")
@@ -172,4 +173,4 @@ def validate_required_fields(
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
